@@ -14,7 +14,9 @@ export const addOwner = async (req: Request, res: Response) => {
 export const getOwnerByID = async (req: Request, res: Response) => {
   try {
     const _id: String = req.params._id;
-    const owner = await Owner.findById({ _id });
+    const owner = await Owner.findById({ _id }).select(
+      "opening_time closing_time"
+    );
     res.json({ owner });
   } catch (error) {
     res.status(400).json({ error });
