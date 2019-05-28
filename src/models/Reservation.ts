@@ -9,6 +9,7 @@ export interface IReservation extends mongoose.Document {
   field: IField["_id"];
   start_time: Date;
   end_time: Date;
+  price: Number;
 }
 
 const Reservation = new Schema({
@@ -26,6 +27,10 @@ const Reservation = new Schema({
   },
   end_time: {
     type: Date,
+    required: true
+  },
+  price: {
+    type: Number,
     required: true
   }
 });
