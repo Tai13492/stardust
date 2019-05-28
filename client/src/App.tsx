@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Row, Col, List } from "antd";
+import { Calendar, Row, Col, List, Button } from "antd";
 import "./App.css";
 import moment from "moment";
 import Axios from "axios";
 import Timeslot from "./components/Timeslot";
+import ReservationForm from "./components/ReservationForm";
 
 // const elevenOClock = new Date(2019, 5, 22, 11, 0, 0);
 // const tenOClock = new Date(2019, 5, 22, 10, 0, 0);
@@ -35,6 +36,7 @@ export interface IFieldTimeSlot {
 
 const App: React.FC = () => {
   const [activeDate, setActiveDate] = useState(new Date());
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [timeInService, setTimeInService] = useState<Array<ItimeInService>>([
     { time: "", timeStamp: new Date() }
   ]);
@@ -101,6 +103,7 @@ const App: React.FC = () => {
           }
         }
         if (fields.data) {
+          console.log(fields.data);
           let belongingFields = fields.data.fields;
           for (let j = 0; j < belongingFields.length; j++) {
             const timeListsClone = [...timeLists];
@@ -108,6 +111,7 @@ const App: React.FC = () => {
               element.user = null;
               element.field = belongingFields[j]._id;
               element.price = null;
+              element.fieldName = belongingFields[j].name;
               return { ...element };
             });
             temporaryFieldTimeTable[
@@ -123,6 +127,8 @@ const App: React.FC = () => {
     fetchOwnerInfo("5ce93353e80c982c0444ba0c");
   }, [activeDate]);
   const listOfFields = Object.keys(fieldTimeTable);
+  console.log(fieldTimeTable, "fieldTimeTable");
+  console.log(activeTimeslot, "activeTimeSlot");
   return (
     <div className="main-container">
       <Row gutter={16}>
@@ -194,6 +200,24 @@ const App: React.FC = () => {
               })}
             </Row>
           </div>
+          <div
+            style={{
+              marginTop: 12,
+              display: "flex",
+              justifyContent: "flex-end",
+              paddingRight: 24,
+              paddingLeft: 24
+            }}
+          >
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => setIsModalVisible(true)}
+              disabled={activeTimeslot.length < 1}
+            >
+              จอง
+            </Button>
+          </div>
         </Col>
         <Col lg={6} md={8} style={{ backgroundColor: "white" }}>
           <Calendar
@@ -206,6 +230,37 @@ const App: React.FC = () => {
           />
         </Col>
       </Row>
+      <ReservationForm
+        isModalVisible={isModalVisible}
+        setIsModalVisible={setIsModalVisible}
+        activeTimeslot={activeTimeslot}
+        onSuccess={({
+          name,
+          phone,
+          price
+        }: {
+          name: string;
+          phone: string;
+          price: number;
+        }) => {
+          if (activeTimeslot.length < 1) return;
+          const fieldTimeTableClone = { ...fieldTimeTable };
+          const fieldID = activeTimeslot[0].field;
+          const fieldArray = fieldTimeTableClone[fieldID];
+          activeTimeslot.forEach((element: IFieldTimeSlot) => {
+            const index = fieldArray.findIndex((e: IFieldTimeSlot) => {
+              return e.timeStamp === element.timeStamp;
+            });
+            fieldArray[index].user = {
+              name,
+              phone
+            };
+            fieldArray[index].price = price;
+          });
+          fieldTimeTableClone[fieldID] = fieldArray;
+          setFieldTimeTable(fieldTimeTableClone);
+        }}
+      />
     </div>
   );
 };

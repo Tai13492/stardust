@@ -17,11 +17,12 @@ const Timeslot = ({
   insertIfNotExists: any;
 }) => {
   const [isClicked, setIsClicked] = useState(false);
-  const { user, price } = data;
   let listStyle: IListStyle = { color: "white" };
+  const { user, price } = data;
   if (user !== null || isClicked) {
     listStyle.backgroundColor = "#1890ff";
   }
+
   return (
     <List.Item
       key={key}
@@ -32,7 +33,8 @@ const Timeslot = ({
       style={listStyle}
     >
       <div className="timetable-slot">
-        {user} {price}
+        {user !== null && user.name + " " + user.phone + " "}
+        {price && price + " บาท"}
       </div>
     </List.Item>
   );
