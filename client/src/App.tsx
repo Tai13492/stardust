@@ -3,35 +3,43 @@ import { Calendar, Row, Col, List } from "antd";
 import "./App.css";
 import moment from "moment";
 import Axios from "axios";
+import Timeslot from "./components/Timeslot";
 
-const data = [
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30",
-  "13:00",
-  "13:30"
-];
+// const elevenOClock = new Date(2019, 5, 22, 11, 0, 0);
+// const tenOClock = new Date(2019, 5, 22, 10, 0, 0);
+// const thirteenOClock = new Date(2019, 5, 22, 13, 0, 0);
+// const isBetween = moment(elevenOClock).isBetween(
+//   elevenOClock,
+//   thirteenOClock,
+//   "millisecond",
+//   "[]"
+// );
+// console.log(isBetween);
+
+interface ItimeInService {
+  time: string;
+  timeStamp: Date;
+}
+
+// interface ITimeHashmap {
+//   timeKey?: number;
+// }
+
+export interface IFieldTimeSlot {
+  time: string;
+  timeStamp: Date;
+  user?: any;
+  field?: any;
+  price?: number;
+}
 
 const App: React.FC = () => {
   const [activeDate, setActiveDate] = useState(new Date());
+  const [timeInService, setTimeInService] = useState<Array<ItimeInService>>([
+    { time: "", timeStamp: new Date() }
+  ]);
+  const [fieldTimeTable, setFieldTimeTable] = useState<any>({});
+  const [timeHashmap, setTimeHashmap] = useState<any>({});
   useEffect(() => {
     const fetchOwnerInfo = async (_id: String) => {
       const requests = [
@@ -40,77 +48,125 @@ const App: React.FC = () => {
       ];
       await Promise.all(requests);
       const [owner, fields] = requests;
-      console.log(owner.data.owner, "owner");
-      console.log(fields.data.fields, "fields");
+      if (owner.data) {
+        const { opening_time, closing_time } = owner.data.owner;
+        const IopeningTime: number = parseInt(opening_time);
+        const IclosingTime: number = parseInt(closing_time);
+        const operationTime: number = IclosingTime - IopeningTime;
+        let temporaryHashmap: any = {};
+        let temporaryFieldTimeTable: any = {};
+        const timeLists: any = [];
+        for (let i = 0; i < operationTime * 2 + 1; i++) {
+          let hour;
+          let tHour: string;
+          if (i % 2 === 0) {
+            hour = IopeningTime + i / 2;
+            if (hour.toString().length < 2) {
+              tHour = "0" + hour.toString();
+            } else {
+              tHour = hour.toString();
+            }
+            temporaryHashmap[`T${tHour}00`] = i;
+            timeLists.push({
+              time: hour.toString() + ":00",
+              timeStamp: new Date(
+                activeDate.getFullYear(),
+                activeDate.getMonth(),
+                activeDate.getDate(),
+                hour,
+                0,
+                0
+              )
+            });
+          } else {
+            hour = IopeningTime + Math.floor(i / 2);
+            if (hour.toString().length < 2) {
+              tHour = "0" + hour.toString();
+            } else {
+              tHour = hour.toString();
+            }
+            temporaryHashmap[`T${tHour}30`] = i;
+            timeLists.push({
+              time: hour.toString() + ":30",
+              timeStamp: new Date(
+                activeDate.getFullYear(),
+                activeDate.getMonth(),
+                activeDate.getDate(),
+                hour,
+                30,
+                0
+              )
+            });
+          }
+        }
+        if (fields.data) {
+          let belongingFields = fields.data.fields;
+          belongingFields.forEach(({ _id }: { _id: string }) => {
+            const timeListsClone = [...timeLists];
+            const emptyTimeSlots = timeListsClone.map(element => {
+              element.user = null;
+              element.field = null;
+              element.price = null;
+              // element.start_time = null;
+              // element.end_time = null;
+              return element;
+            });
+            temporaryFieldTimeTable[`${_id}`] = emptyTimeSlots;
+          });
+        }
+        setTimeInService(timeLists);
+        setTimeHashmap(temporaryHashmap);
+        setFieldTimeTable(temporaryFieldTimeTable);
+      }
+      // console.log(fields.data.fields, "fields");
     };
     fetchOwnerInfo("5ce93353e80c982c0444ba0c");
-  });
+  }, [activeDate]);
+  const listOfFields = Object.keys(fieldTimeTable);
   return (
-    <div
-      style={{
-        paddingLeft: "1rem",
-        paddingRight: "1rem",
-        paddingTop: "0.5rem",
-        backgroundColor: "#f7f7f7",
-        height: "100vh"
-      }}
-    >
+    <div className="main-container">
       <Row gutter={16}>
         <Col lg={18} md={16}>
-          <div
-            style={{ background: "white", padding: 12, textAlign: "center" }}
-          >
-            <h1
-              style={{
-                color: "#1890FF",
-                fontSize: "2.4rem",
-                fontWeight: "bold",
-                marginBottom: 0,
-                maxHeight: 240
-              }}
-            >
+          <div className="date-container">
+            <h1 className="date-header">
               {moment(activeDate).format("DD/MM/YYYY")}
             </h1>
           </div>
-          <div
-            style={{
-              backgroundColor: "white",
-              marginTop: "1.5rem",
-              paddingLeft: 24,
-              overflowY: "scroll",
-              overflowX: "hidden",
-              maxHeight: "72vh"
-            }}
-          >
+          <div className="timetable-container">
             <Row gutter={16}>
               <Col md={3} style={{ marginTop: "1.5rem" }}>
-                <h1
-                  style={{
-                    color: "#1890ff",
-                    marginBottom: 12,
-                    backgroundColor: "white",
-                    border: "1px solid grey",
-                    textAlign: "center",
-                    position: "sticky",
-                    top: 20,
-                    left: 20,
-                    zIndex: 3
-                  }}
-                >
-                  {" "}
-                  เวลา{" "}
-                </h1>
+                <h1 className="timetable-header"> เวลา </h1>
                 <List
                   bordered
-                  dataSource={data}
+                  dataSource={timeInService}
                   style={{ marginTop: "1rem" }}
-                  renderItem={item => (
+                  renderItem={element => (
                     <List.Item>
-                      <div style={{ textAlign: "center" }}>{item}</div>
+                      <div className="timetable-slot">{element.time}</div>
                     </List.Item>
                   )}
                 />
               </Col>
+              {listOfFields.map((item, idx) => {
+                return (
+                  <Col md={4} style={{ marginTop: "1.5rem" }} key={idx}>
+                    <h1 className="timetable-header">สนาม {idx + 1}</h1>
+                    <List
+                      bordered
+                      dataSource={fieldTimeTable[listOfFields[idx]]}
+                      style={{ marginTop: "1rem" }}
+                      renderItem={(element: IFieldTimeSlot) => {
+                        return (
+                          <Timeslot
+                            data={element}
+                            key={element.time + "" + listOfFields[idx]}
+                          />
+                        );
+                      }}
+                    />
+                  </Col>
+                );
+              })}
             </Row>
           </div>
         </Col>

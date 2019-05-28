@@ -5,6 +5,63 @@
   justify-content: center;
 }
 
+.main-container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  background-color: #f7f7f7;
+  height: 100vh;
+}
+
+.date-container {
+  background-color: white;
+  padding: 12px;
+  text-align: center;
+}
+
+.timetable-container {
+  background-color: white;
+  margin-top: 1.5rem;
+  padding-left: 24px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  max-height: 72vh;
+  padding-bottom: 20px;
+}
+
+.timetable-header {
+  color: #1890ff;
+  margin-bottom: 12px;
+  background-color: white;
+  border: 1px solid #d9d9d9;
+  text-align: center;
+  position: sticky;
+  top: 20px;
+  left: 20px;
+  z-index: 3;
+}
+
+.bg-primary {
+  background-color: #1890ff;
+}
+
+.is-white {
+  color: white;
+}
+
+.date-header {
+  color: #1890ff;
+  font-size: 2.4rem;
+  font-weight: bold;
+  margin-bottom: 0px;
+  max-height: 240px;
+}
+
+.timetable-slot {
+  text-align: center;
+  font-weight: 500;
+  height: 21px;
+}
 /* width */
 ::-webkit-scrollbar {
   width: 8px;
