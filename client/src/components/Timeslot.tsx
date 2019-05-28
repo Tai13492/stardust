@@ -7,7 +7,15 @@ interface IListStyle {
   color: string;
 }
 
-const Timeslot = ({ data, key }: { data: IFieldTimeSlot; key: string }) => {
+const Timeslot = ({
+  data,
+  key,
+  insertIfNotExists
+}: {
+  data: IFieldTimeSlot;
+  key: string;
+  insertIfNotExists: any;
+}) => {
   const [isClicked, setIsClicked] = useState(false);
   const { user, price } = data;
   let listStyle: IListStyle = { color: "white" };
@@ -17,7 +25,10 @@ const Timeslot = ({ data, key }: { data: IFieldTimeSlot; key: string }) => {
   return (
     <List.Item
       key={key}
-      onClick={() => setIsClicked(!isClicked)}
+      onClick={() => {
+        insertIfNotExists();
+        setIsClicked(!isClicked);
+      }}
       style={listStyle}
     >
       <div className="timetable-slot">

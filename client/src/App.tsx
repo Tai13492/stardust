@@ -40,6 +40,7 @@ const App: React.FC = () => {
   ]);
   const [fieldTimeTable, setFieldTimeTable] = useState<any>({});
   const [timeHashmap, setTimeHashmap] = useState<any>({});
+  const [activeTimeslot, setActiveTimeslot] = useState<any>([]);
   useEffect(() => {
     const fetchOwnerInfo = async (_id: String) => {
       const requests = [
@@ -101,24 +102,23 @@ const App: React.FC = () => {
         }
         if (fields.data) {
           let belongingFields = fields.data.fields;
-          belongingFields.forEach(({ _id }: { _id: string }) => {
+          for (let j = 0; j < belongingFields.length; j++) {
             const timeListsClone = [...timeLists];
             const emptyTimeSlots = timeListsClone.map(element => {
               element.user = null;
-              element.field = null;
+              element.field = belongingFields[j]._id;
               element.price = null;
-              // element.start_time = null;
-              // element.end_time = null;
-              return element;
+              return { ...element };
             });
-            temporaryFieldTimeTable[`${_id}`] = emptyTimeSlots;
-          });
+            temporaryFieldTimeTable[
+              `${belongingFields[j]._id}`
+            ] = emptyTimeSlots;
+          }
         }
         setTimeInService(timeLists);
         setTimeHashmap(temporaryHashmap);
         setFieldTimeTable(temporaryFieldTimeTable);
       }
-      // console.log(fields.data.fields, "fields");
     };
     fetchOwnerInfo("5ce93353e80c982c0444ba0c");
   }, [activeDate]);
@@ -147,19 +147,44 @@ const App: React.FC = () => {
                   )}
                 />
               </Col>
-              {listOfFields.map((item, idx) => {
+              {listOfFields.map((id, count) => {
                 return (
-                  <Col md={4} style={{ marginTop: "1.5rem" }} key={idx}>
-                    <h1 className="timetable-header">สนาม {idx + 1}</h1>
+                  <Col md={4} style={{ marginTop: "1.5rem" }} key={id}>
+                    <h1 className="timetable-header">สนาม {count + 1}</h1>
                     <List
                       bordered
-                      dataSource={fieldTimeTable[listOfFields[idx]]}
+                      dataSource={fieldTimeTable[id]}
                       style={{ marginTop: "1rem" }}
                       renderItem={(element: IFieldTimeSlot) => {
                         return (
                           <Timeslot
                             data={element}
-                            key={element.time + "" + listOfFields[idx]}
+                            key={element.time + "" + id}
+                            insertIfNotExists={() => {
+                              const index = activeTimeslot.findIndex(
+                                ({
+                                  field,
+                                  timeStamp
+                                }: {
+                                  field: string;
+                                  timeStamp: Date;
+                                }) => {
+                                  return (
+                                    field === element.field &&
+                                    timeStamp === element.timeStamp
+                                  );
+                                }
+                              );
+                              if (index !== -1) {
+                                const clone = [...activeTimeslot];
+                                clone.splice(index, 1);
+                                setActiveTimeslot(clone);
+                              } else {
+                                setActiveTimeslot(
+                                  [...activeTimeslot].concat(element)
+                                );
+                              }
+                            }}
                           />
                         );
                       }}
